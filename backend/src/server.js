@@ -7,7 +7,6 @@ const winston = require('winston');
 const expressWinston = require('express-winston');
 const { createServer } = require('http');
 const WebSocket = require('ws');
-const mqtt = require('mqtt');
 const dotenv = require('dotenv');
 const path = require('path');
 
@@ -63,12 +62,36 @@ const redis = require('./utils/redis');
 const wss = new WebSocket.Server({ server, path: '/ws' });
 require('./websocket/handler')(wss, logger);
 
-// MQTT Client
-const mqttClient = mqtt.connect(
-  `mqtt://${process.env.MQTT_BROKER_HOST || 'localhost'}:${process.env.MQTT_BROKER_PORT || 1883}`,
-  { reconnectPeriod: 5000 }
-);
-require('./mqtt/handler')(mqttClient, logger);
+// MQTT — only init if broker is configured
+let mqttClient = null;
+if (process.env.MQTT_BROKER_HOST) {
+  const mqtt = require('mqtt');
+  mqttClient = mqtt.connect(
+    `mqtt://${process.env.MQTT_BROKER_HOST}:${process.env.MQTT_BROKER_PORT || 1883}`,
+    { reconnectPeriod: 5000 }
+  );
+  require('./mqtt/handler')(mqttClient, logger);
+  logger.info('MQTT client initialized');
+} else {
+  logger.info('MQTT broker not configured — skipping MQTT init');
+}
+
+// MinIO — only init if configured
+let minioClient = null;
+if (process.env.MINIO_HOST || process.env.MINIO_ENDPOINT) {
+  const Minio = require('minio');
+  minioClient = new Minio.Client({
+    endPoint: process.env.MINIO_HOST || process.env.MINIO_ENDPOINT,
+    port: parseInt(process.env.MINIO_PORT || 9000),
+    useSSL: process.env.MINIO_USE_SSL === 'true',
+    accessKey: process.env.MINIO_ACCESS_KEY,
+    secretKey: process.env.MINIO_SECRET_KEY
+  });
+  require('./minio/handler')(minioClient, logger);
+  logger.info('MinIO client initialized');
+} else {
+  logger.info('MinIO not configured — skipping object storage init');
+}
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -109,7 +132,14 @@ app.use('/api/hardware', require('./routes/hardware'));
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    services: {
+      mqtt: !!mqttClient,
+      minio: !!minioClient
+    }
+  });
 });
 
 // Error handler
@@ -123,5 +153,4 @@ server.listen(PORT, '0.0.0.0', () => {
   logger.info(`WUZEN C2 Backend running on 0.0.0.0:${PORT}`);
 });
 
-module.exports = { app, wss, mqttClient };
-  
+module.exports = { app, wss, mqttClient, minioClient };
