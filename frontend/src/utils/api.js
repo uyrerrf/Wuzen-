@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'https://wuzen-backend.onrender.com';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://wuzen-backend.onrender.com/api';
 
 function getToken() {
   return localStorage.getItem('wuzen_token')
