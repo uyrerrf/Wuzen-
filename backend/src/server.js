@@ -15,7 +15,6 @@ dotenv.config();
 const app = express();
 const server = createServer(app);
 
-// Require db first so it is available
 const db = require('./utils/db');
 
 async function initDB() {
@@ -39,7 +38,6 @@ async function initDB() {
 }
 
 initDB();
-
 
 
 
