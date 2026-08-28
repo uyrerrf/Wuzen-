@@ -1,4 +1,4 @@
-const db = require('./utils/db');
+const db = require('../utils/db');
 
 module.exports = function(mqttClient, logger) {
   mqttClient.on('connect', () => {
