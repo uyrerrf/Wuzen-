@@ -15,11 +15,12 @@ dotenv.config();
 const app = express();
 const server = createServer(app);
 
-const db = require('./utils/db');
+// Using postgresDb avoids variable collisions with existing 'db' declarations below
+const postgresDb = require('./utils/db');
 
 async function initDB() {
   try {
-    await db.query(`
+    await postgresDb.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(255) UNIQUE NOT NULL,
@@ -38,6 +39,7 @@ async function initDB() {
 }
 
 initDB();
+
 
 
 
