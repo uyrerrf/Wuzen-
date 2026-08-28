@@ -2,7 +2,7 @@ services:
   - type: web
     name: wuzen-backend
     runtime: node
-    plan: standard
+    plan: free
     buildCommand: cd backend && npm ci
     startCommand: cd backend && node src/server.js
     envVars:
@@ -60,10 +60,11 @@ services:
 
   - type: redis
     name: wuzen-redis
-    plan: starter
+    plan: free
     ipAllowList: []
 
 databases:
   - name: wuzen-postgres
-    plan: starter
+    plan: free
     ipAllowList: []
+    
