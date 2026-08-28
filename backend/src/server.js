@@ -9,13 +9,18 @@ const { createServer } = require('http');
 const WebSocket = require('ws');
 const dotenv = require('dotenv');
 const path = require('path');
+const bcrypt = require('bcryptjs'); // or 'bcrypt' depending on your package.json
 
 dotenv.config();
 
 const app = express();
 const server = createServer(app);
 
-// Using postgresDb avoids variable collisions with existing 'db' declarations below
+// Root route to fix "Not Found" when opening the backend URL directly
+app.get('/', (req, res) => {
+  res.json({ status: 'online', service: 'WUZEN C2 Backend' });
+});
+
 const postgresDb = require('./utils/db');
 
 async function initDB() {
@@ -33,12 +38,24 @@ async function initDB() {
       );
     `);
     console.log("Users table verified/created successfully.");
+
+    // Seed default admin user if table is empty
+    const checkUser = await postgresDb.query(`SELECT COUNT(*) FROM users;`);
+    if (parseInt(checkUser.rows[0].count) === 0) {
+      const defaultPasswordHash = await bcrypt.hash('admin123', 10);
+      await postgresDb.query(`
+        INSERT INTO users (username, email, password_hash, role)
+        VALUES ('admin', 'admin@wuzen.local', $1, 'admin');
+      `, [defaultPasswordHash]);
+      console.log("Default user created: username 'admin' | password 'admin123'");
+    }
   } catch (err) {
-    console.error("Failed to create users table:", err.message);
+    console.error("Failed to initialize database:", err.message);
   }
 }
 
 initDB();
+  
 
 
 
