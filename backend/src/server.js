@@ -15,6 +15,31 @@ dotenv.config();
 const app = express();
 const server = createServer(app);
 
+const db = require('./utils/db');
+
+async function initDB() {
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(255) UNIQUE NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        role VARCHAR(50) DEFAULT 'operator',
+        is_active BOOLEAN DEFAULT true,
+        last_login TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log("Users table verified/created successfully.");
+  } catch (err) {
+    console.error("Failed to create users table:", err.message);
+  }
+}
+
+initDB();
+
+
 // Logger
 const logger = winston.createLogger({
   level: 'info',
