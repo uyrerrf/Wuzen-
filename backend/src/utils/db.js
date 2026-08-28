@@ -3,21 +3,20 @@ const path = require('path');
 const { Pool } = require('pg');
 
 const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,
   user: process.env.DB_USER || 'wuzen',
   password: process.env.DB_PASS || 'wuzen_secret_2026',
   database: process.env.DB_NAME || 'wuzen_c2',
-  connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000
+  connectionTimeoutMillis: 10000
 });
 
 pool.on('error', (err) => {
   console.error('Unexpected DB error', err);
-  process.exit(-1);
 });
 
 async function runMigrations() {
@@ -39,3 +38,4 @@ module.exports = {
   query: (text, params) => pool.query(text, params),
   pool
 };
+      
