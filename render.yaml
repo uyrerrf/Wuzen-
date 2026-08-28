@@ -1,0 +1,69 @@
+services:
+  - type: web
+    name: wuzen-backend
+    runtime: node
+    plan: standard
+    buildCommand: cd backend && npm ci
+    startCommand: cd backend && node src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DB_HOST
+        fromDatabase:
+          name: wuzen-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: wuzen-postgres
+          property: port
+      - key: DB_USER
+        fromDatabase:
+          name: wuzen-postgres
+          property: user
+      - key: DB_PASS
+        fromDatabase:
+          name: wuzen-postgres
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: wuzen-postgres
+          property: database
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: wuzen-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: wuzen-redis
+          property: port
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+
+  - type: web
+    name: wuzen-frontend
+    runtime: static
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/dist
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://wuzen-backend.onrender.com/api/$1
+      - type: rewrite
+        source: /ws/*
+        destination: wss://wuzen-backend.onrender.com/ws/$1
+
+  - type: redis
+    name: wuzen-redis
+    plan: starter
+    ipAllowList: []
+
+databases:
+  - name: wuzen-postgres
+    plan: starter
+    ipAllowList: []

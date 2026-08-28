@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-wuzen-bg text-wuzen-text;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-wuzen-panel;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-wuzen-border rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-wuzen-muted;
+  }
+}
+
+@layer components {
+  .wuzen-panel {
+    @apply bg-wuzen-panel border border-wuzen-border rounded-lg;
+  }
+
+  .wuzen-card {
+    @apply bg-wuzen-card border border-wuzen-border rounded-lg hover:border-wuzen-primary/30 transition-all duration-200;
+  }
+
+  .wuzen-input {
+    @apply bg-wuzen-bg border border-wuzen-border rounded px-3 py-2 text-sm text-wuzen-text 
+           focus:outline-none focus:border-wuzen-primary focus:ring-1 focus:ring-wuzen-primary/50
+           placeholder-wuzen-muted;
+  }
+
+  .wuzen-btn {
+    @apply px-4 py-2 rounded text-sm font-medium transition-all duration-200 
+           flex items-center gap-2 justify-center;
+  }
+
+  .wuzen-btn-primary {
+    @apply wuzen-btn bg-wuzen-primary/10 text-wuzen-primary border border-wuzen-primary/30 
+           hover:bg-wuzen-primary/20 hover:border-wuzen-primary/50;
+  }
+
+  .wuzen-btn-danger {
+    @apply wuzen-btn bg-wuzen-secondary/10 text-wuzen-secondary border border-wuzen-secondary/30 
+           hover:bg-wuzen-secondary/20 hover:border-wuzen-secondary/50;
+  }
+
+  .wuzen-btn-success {
+    @apply wuzen-btn bg-wuzen-success/10 text-wuzen-success border border-wuzen-success/30 
+           hover:bg-wuzen-success/20 hover:border-wuzen-success/50;
+  }
+
+  .wuzen-table {
+    @apply w-full text-sm;
+  }
+
+  .wuzen-table th {
+    @apply text-left py-3 px-4 text-wuzen-muted font-medium text-xs uppercase tracking-wider 
+           border-b border-wuzen-border;
+  }
+
+  .wuzen-table td {
+    @apply py-3 px-4 border-b border-wuzen-border/50;
+  }
+
+  .wuzen-table tr:hover td {
+    @apply bg-wuzen-card/50;
+  }
+
+  .status-dot {
+    @apply w-2 h-2 rounded-full inline-block mr-2;
+  }
+
+  .status-online {
+    @apply bg-wuzen-success animate-pulse;
+  }
+
+  .status-offline {
+    @apply bg-wuzen-danger;
+  }
+
+  .status-pending {
+    @apply bg-wuzen-warning animate-pulse;
+  }
+
+  .glow-text {
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+  }
+
+  .scan-line {
+    @apply absolute inset-0 pointer-events-none overflow-hidden;
+  }
+
+  .scan-line::after {
+    content: '';
+    @apply absolute w-full h-px bg-gradient-to-r from-transparent via-wuzen-primary/30 to-transparent;
+    animation: scan 4s linear infinite;
+  }
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.leaflet-container {
+  @apply rounded-lg;
+  background: #0a0e17 !important;
+}

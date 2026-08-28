@@ -1,0 +1,27 @@
+version: "3.9"
+
+# This file is automatically loaded by docker-compose for local development
+# It overrides production settings to expose ports on all interfaces
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  minio:
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+  backend:
+    ports:
+      - "3001:3001"
+
+  mqtt:
+    ports:
+      - "1883:1883"
+      - "9002:9001"

