@@ -40,6 +40,7 @@ async function initDB() {
 initDB();
 
 
+
 // Logger
 const logger = winston.createLogger({
   level: 'info',
