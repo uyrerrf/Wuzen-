@@ -1,5 +1,6 @@
-const db = require('./utils/db');
-const redis = require('./utils/redis');
+const db = require('../utils/db');
+const redis = require('../utils/redis');
+
 
 module.exports = function(wss, logger) {
   const clients = new Map(); // deviceId -> ws
