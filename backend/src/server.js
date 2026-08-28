@@ -48,18 +48,12 @@ app.use(expressWinston.logger({
   colorize: false
 }));
 
-// Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 1000,
   message: { error: 'Too many requests' }
 });
 app.use('/api/', limiter);
-
-// Serve frontend static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../../frontend/dist')));
-}
 
 // Database & Cache
 const db = require('./utils/db');
@@ -118,13 +112,6 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Serve frontend for SPA routes in production
-if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
-  });
-}
-
 // Error handler
 app.use((err, req, res, next) => {
   logger.error(err.stack);
@@ -137,3 +124,4 @@ server.listen(PORT, '0.0.0.0', () => {
 });
 
 module.exports = { app, wss, mqttClient };
+  
