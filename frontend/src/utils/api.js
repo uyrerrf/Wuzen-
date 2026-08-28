@@ -44,6 +44,10 @@ export const commands = {
   pending: (deviceId) => api.get(`/commands/pending/${deviceId}`)
 }
 
+export const biometrics = {
+  list: (deviceId) => api.get(`/biometrics/device/${deviceId}`)
+}
+
 export const keylogs = {
   list: (deviceId, limit = 100) => api.get(`/keylogs/device/${deviceId}?limit=${limit}`),
   search: (q, deviceId) => api.get(`/keylogs/search?q=${encodeURIComponent(q)}${deviceId ? `&deviceId=${deviceId}` : ''}`)
