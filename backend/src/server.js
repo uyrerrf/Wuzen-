@@ -15,8 +15,8 @@ dotenv.config();
 const app = express();
 const server = createServer(app);
 
-const db = require('./utils/db');
-
+// Assumes 'db' is already required at the top of your file. 
+// If not, declare it once at the very top.
 async function initDB() {
   try {
     await db.query(`
@@ -38,6 +38,7 @@ async function initDB() {
 }
 
 initDB();
+
 
 
 
