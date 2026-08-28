@@ -48,7 +48,7 @@ services:
   - type: web
     name: wuzen-frontend
     runtime: static
-    buildCommand: cd frontend && npm ci && npm run build
+    buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: ./frontend/dist
     routes:
       - type: rewrite
